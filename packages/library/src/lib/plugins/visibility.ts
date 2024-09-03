@@ -8,11 +8,9 @@ const IMPORTANT = 'important'
 const DURATION = 'duration'
 
 const SHOW = 'show'
-const SHOW_CLASS = `${DATASTAR_CLASS_PREFIX}showing`
-const HIDE_CLASS = `${DATASTAR_CLASS_PREFIX}hiding`
-const SHOW_DURATION_TRANSITION_STYLE = `${DATASTAR_CLASS_PREFIX}show-transition-style`
+const SHOW_TRANSITION_CLASS = `${DATASTAR_CLASS_PREFIX}show-transition`
+const SHOW_TRANSITION_STYLE = `${DATASTAR_CLASS_PREFIX}show-transition-style`
 
-// Sets the display of the element
 export const ShowPlugin: AttributePlugin = {
   prefix: SHOW,
   allowedModifiers: new Set([IMPORTANT, DURATION]),
@@ -27,45 +25,43 @@ export const ShowPlugin: AttributePlugin = {
 
     const durationArgs = ctx.modifiers.get(DURATION)
     if (durationArgs) {
-      let style = document.getElementById(SHOW_DURATION_TRANSITION_STYLE)
+      // Get or create the style element for the transition
+      let style = document.getElementById(SHOW_TRANSITION_STYLE)
+      const durationMs = argsToMs(durationArgs) || 300
+
       if (!style) {
         style = document.createElement('style')
-        style.id = SHOW_DURATION_TRANSITION_STYLE
+        style.id = SHOW_TRANSITION_STYLE
         document.head.appendChild(style)
-        const durationMs = argsToMs(durationArgs) || '300'
         style.innerHTML = `
-          .${SHOW_CLASS} {
-            visibility: visible;
+          .${SHOW_TRANSITION_CLASS} {
             transition: opacity ${durationMs}ms linear;
-          }
-          .${HIDE_CLASS} {
-            visibility: hidden;
-            transition: visibility 0s ${durationMs}ms, opacity ${durationMs}ms linear;
           }
         `
       }
 
-      const transitionEndHandler = (classNameToRemove: string) => (event: Event) => {
-        if (event.target === el) {
-          el.classList.remove(classNameToRemove)
-          el.removeEventListener('transitionend', transitionEndHandler(classNameToRemove))
-        }
-      }
-
       showFn = () => {
-        el.addEventListener('transitionend', transitionEndHandler(SHOW_CLASS))
-        el.classList.add(SHOW_CLASS)
+        el.classList.add(SHOW_TRANSITION_CLASS)
+        el.style.display = 'block'
+        el.style.opacity = '0'
+
         requestAnimationFrame(() => {
-          el.style.setProperty('opacity', '1', priority)
+          ;(el as HTMLElement).offsetHeight // Force reflow/repaint
+          el.style.opacity = '1'
+
+          setTimeout(() => {
+            el.classList.remove(SHOW_TRANSITION_CLASS)
+          }, durationMs)
         })
       }
 
       hideFn = () => {
-        el.addEventListener('transitionend', transitionEndHandler(HIDE_CLASS))
-        el.classList.add(HIDE_CLASS)
-        requestAnimationFrame(() => {
-          el.style.setProperty('opacity', '0', priority)
-        })
+        el.classList.add(SHOW_TRANSITION_CLASS)
+        el.style.opacity = '0'
+        setTimeout(() => {
+          el.style.display = 'none'
+          el.classList.remove(SHOW_TRANSITION_CLASS)
+        }, durationMs)
       }
     } else {
       showFn = () => {
