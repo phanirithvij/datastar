@@ -9,8 +9,9 @@ const DURATION = 'duration'
 
 const SHOW = 'show'
 const SHOW_TRANSITION_CLASS = `${DATASTAR_CLASS_PREFIX}show-transition`
-const SHOW_TRANSITION_STYLE = `${DATASTAR_CLASS_PREFIX}show-transition-style`
+const SHOW_DURATION_TRANSITION_STYLE = `${DATASTAR_CLASS_PREFIX}show-transition-style`
 
+// Sets the display of the element
 export const ShowPlugin: AttributePlugin = {
   prefix: SHOW,
   allowedModifiers: new Set([IMPORTANT, DURATION]),
@@ -25,43 +26,47 @@ export const ShowPlugin: AttributePlugin = {
 
     const durationArgs = ctx.modifiers.get(DURATION)
     if (durationArgs) {
-      // Get or create the style element for the transition
-      let style = document.getElementById(SHOW_TRANSITION_STYLE)
-      const durationMs = argsToMs(durationArgs) || 300
-
+      let style = document.getElementById(SHOW_DURATION_TRANSITION_STYLE)
       if (!style) {
         style = document.createElement('style')
-        style.id = SHOW_TRANSITION_STYLE
+        style.id = SHOW_DURATION_TRANSITION_STYLE
         document.head.appendChild(style)
+        const durationMs = argsToMs(durationArgs) || '300'
         style.innerHTML = `
           .${SHOW_TRANSITION_CLASS} {
             transition: opacity ${durationMs}ms linear;
+            transition-behavior: allow-discrete;
           }
         `
       }
 
+      const handleShowTransitionEnd = () => {
+        el.classList.remove(SHOW_TRANSITION_CLASS)
+        el.removeEventListener('transitionend', handleShowTransitionEnd)
+      }
       showFn = () => {
+        el.removeEventListener('transitionend', handleHideTransitionEnd)
         el.classList.add(SHOW_TRANSITION_CLASS)
-        el.style.display = 'block'
         el.style.opacity = '0'
-
         requestAnimationFrame(() => {
-          ;(el as HTMLElement).offsetHeight // Force reflow/repaint
-          el.style.opacity = '1'
-
-          setTimeout(() => {
-            el.classList.remove(SHOW_TRANSITION_CLASS)
-          }, durationMs)
+          el.style.display = 'block'
+          requestAnimationFrame(() => {
+            el.style.opacity = '1'
+            el.addEventListener('transitionend', handleShowTransitionEnd)
+          })
         })
       }
 
+      const handleHideTransitionEnd = () => {
+        el.style.display = 'none'
+        el.classList.remove(SHOW_TRANSITION_CLASS)
+        el.removeEventListener('transitionend', handleHideTransitionEnd)
+      }
       hideFn = () => {
+        el.removeEventListener('transitionend', handleShowTransitionEnd)
         el.classList.add(SHOW_TRANSITION_CLASS)
         el.style.opacity = '0'
-        setTimeout(() => {
-          el.style.display = 'none'
-          el.classList.remove(SHOW_TRANSITION_CLASS)
-        }, durationMs)
+        el.addEventListener('transitionend', handleHideTransitionEnd)
       }
     } else {
       showFn = () => {
