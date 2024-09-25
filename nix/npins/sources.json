@@ -1,0 +1,23 @@
+{
+  "pins": {
+    "build-go-cache": {
+      "type": "Git",
+      "repository": {
+        "type": "GitHub",
+        "owner": "phanirithvij",
+        "repo": "build-go-cache"
+      },
+      "branch": "main",
+      "revision": "3dfff4b953bc4dbb439037fb559d1e108b98f27f",
+      "url": "https://github.com/phanirithvij/build-go-cache/archive/3dfff4b953bc4dbb439037fb559d1e108b98f27f.tar.gz",
+      "hash": "1wij3wgc69sn6s0jhbm8q23zg0fdbmraqxf72sdw94pjzss2ik42"
+    },
+    "nixpkgs": {
+      "type": "Channel",
+      "name": "nixpkgs-unstable",
+      "url": "https://releases.nixos.org/nixpkgs/nixpkgs-24.11pre685445.4f3154007932/nixexprs.tar.xz",
+      "hash": "0lpabq9a27zqs72ripysm6x8lqkwfpklxi7lsgbcfwvhhd96hy5k"
+    }
+  },
+  "version": 3
+}
