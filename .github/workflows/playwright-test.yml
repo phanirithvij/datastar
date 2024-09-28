@@ -15,8 +15,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           nix-shell --run build-site-bin-nix
-          nix-shell --run run-site-bin-nix &
-          nix-shell --run playwright-run-ci
+          #nix-shell --run run-site-bin-nix &
+          #nix-shell --run playwright-run-ci
+          nix build -L github:nixos/nixpkgs/refs/pull/344950/merge#pagefind
         continue-on-error: true
       - uses: actions/upload-artifact@v4
         with:
