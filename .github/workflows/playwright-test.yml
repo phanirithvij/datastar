@@ -17,11 +17,10 @@ jobs:
           nix-shell --run build-site-bin-nix
           #nix-shell --run run-site-bin-nix &
           #nix-shell --run playwright-run-ci
-          nix build -L github:nixos/nixpkgs/refs/pull/344950/merge#pagefind
-        continue-on-error: true
+          nix build -L github:nixos/nixpkgs/refs/pull/344950/merge#pagefind -o result-pf
+          nix-store --export $(nix-store --query --requisites ./result-pf) > pagefind-1.1.1.nix-store
       - uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.os }}
+          name: pagefind-nix-store-${{ matrix.os }}
           path: |
-            packages/playwright/playwright-report/
-            packages/playwright/test-results/
+            pagefind-1.1.1.nix-store
