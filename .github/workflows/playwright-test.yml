@@ -45,4 +45,6 @@ jobs:
           cd out
           echo "<html><body>hi</body></html>" > index.html
       - run: |
-          ./result-pf/bin/pagefind -s out --serve --verbose
+          ./result-pf/bin/pagefind -s out --serve --verbose &
+          nix profile install nixpkgs#caddy
+          caddy reverse-proxy --from :2080 --to :1414
