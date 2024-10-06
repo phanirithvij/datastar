@@ -16,23 +16,21 @@ jobs:
             trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
             substituters = https://nix-community.cachix.org https://cache.nixos.org
       - uses: DeterminateSystems/magic-nix-cache-action@main
+      - uses: omnigres/tailscale-github-action@macos
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          version: 1.74.1
       - run: |
-          mkdir -p ~/.config/home-manager
-          cat <<EOF > ~/.config/home-manager/home.nix
-            { pkgs, ...}:
-            let
-              inherit (pkgs.stdenv.hostPlatform) isDarwin;
-            in
-            {
-              home.username = "runner";
-              home.homeDirectory = "/\${if isDarwin then "Users" else "home"}/runner";
-              home.stateVersion = "24.11";
-              services.espanso.enable = true;
-            }
-          EOF
-          export NIX_PATH=nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz
-          echo $NIX_PATH
-          nix run github:phanirithvij/home-manager/espanso-wl-no-pr -- switch
+          nix build -L github:phanirithvij/nixpkgs/patch-1#pagefind -o result-pf
+          #nix build -L github:nixos/nixpkgs/refs/pull/344950/merge#pagefind -o result-pf --rebuild
+          nix-store --export $(nix-store --query --requisites ./result-pf) > pagefind-1.1.1.nix-store
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pagefind-nix-store-${{ matrix.os }}
+          path: |
+            pagefind-1.1.1.nix-store
       - if: ${{ runner.os == 'Linux' }}
         run: |
           git clone https://github.com/nix-community/noogle
@@ -47,7 +45,6 @@ jobs:
           cd out
           echo "<html><body>hi</body></html>" > index.html
       - run: |
-          echo HI
-          #./result-pf/bin/pagefind -s out --serve --verbose &
-          #nix profile install nixpkgs#caddy
-          #caddy reverse-proxy --from :2080 --to :1414
+          ./result-pf/bin/pagefind -s out --serve --verbose &
+          nix profile install nixpkgs#caddy
+          caddy reverse-proxy --from :2080 --to :1414
