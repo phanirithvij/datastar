@@ -7,12 +7,40 @@ jobs:
   playwright-test:
     runs-on: ubuntu-latest
     steps:
+      - run: |
+          echo "Free space:"
+          df -h
+      # https://github.com/workflow/dotfiles/blob/main/.github/workflows/nixos.yml
+      - name: "Maximize Disk Space"
+        run: |
+          sudo rm -rf $AGENT_TOOLSDIRECTORY
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/local/share/powershell
+          sudo rm -rf /usr/local/share/chromium
+          sudo rm -rf /usr/local/lib/node_modules
+          sudo rm -rf /usr/local/lib/heroku
+          sudo rm -rf /var/lib/docker/overlay2
+          sudo rm -rf /home/linuxbrew
+          sudo rm -rf /home/runner/.rustup
+      - name: "Maximize Disk Space 😈"
+        uses: easimon/maximize-build-space@v8
+        with:
+          build-mount-path: /nix
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+          remove-docker-images: "true"
+          root-reserve-mb: 47200
+          temp-reserve-mb: 2200
+      - run: sudo chown 0 /nix
       - uses: cachix/install-nix-action@v27
         with:
           extra_nix_config: |
             trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs=
             substituters = https://nix-community.cachix.org https://cache.nixos.org https://nixpkgs-unfree.cachix.org
       - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix profile install nixpkgs#go
       - uses: omnigres/tailscale-github-action@macos
         with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
