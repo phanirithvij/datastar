@@ -48,11 +48,10 @@ jobs:
           tags: tag:ci
           version: 1.74.1
       - run: |
-          export NIXPKGS_ALLOW_UNFREE=1
-          nix build -L github:nixos/nixpkgs/nixos-unstable#mongodb-7_0 --impure -o result-mdb
-          nix-store --export $(nix-store --query --requisites ./result-mdb) > mongodb.nix-store
+          nix build -L github:phanirithvij/nixpkgs/odoo-fix-tests#pkgsCross.aarch64-multiplatform.python310Packages.aiohttp --impure -o res
+          nix-store --export $(nix-store --query --requisites ./res) > aiohttp-aarch64-linux.nix-store
       - uses: actions/upload-artifact@v4
         with:
-          name: mongodb-nix-store
+          name: aiohttp-nix-store
           path: |
-            mongodb.nix-store
+            aiohttp-aarch64-linux.nix-store
