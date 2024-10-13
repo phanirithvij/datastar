@@ -48,10 +48,16 @@ jobs:
           tags: tag:ci
           version: 1.74.1
       - run: |
-          nix build -L github:phanirithvij/nixpkgs/odoo-fix-tests#pkgsCross.aarch64-multiplatform.python310Packages.aiohttp --impure -o res
-          nix-store --export $(nix-store --query --requisites ./res) > aiohttp-aarch64-linux.nix-store
+          nix build -L github:phanirithvij/nixpkgs/odoo-fix-tests#pkgsCross.aarch64-multiplatform.odoo15 --impure -o res1
+          nix build -L github:phanirithvij/nixpkgs/odoo-fix-tests#pkgsCross.aarch64-multiplatform.odoo16 --impure -o res2
+          nix build -L github:phanirithvij/nixpkgs/odoo-fix-tests#pkgsCross.aarch64-multiplatform.odoo17 --impure -o res3
+          nix build -L github:phanirithvij/nixpkgs/odoo-fix-tests#pkgsCross.aarch64-multiplatform.odoo --impure -o res4
+          nix-store --export $(nix-store --query --requisites ./res1) > odoo15-aarch64-linux.nix-store
+          nix-store --export $(nix-store --query --requisites ./res2) > odoo16-aarch64-linux.nix-store
+          nix-store --export $(nix-store --query --requisites ./res3) > odoo17-aarch64-linux.nix-store
+          nix-store --export $(nix-store --query --requisites ./res4) > odoo-aarch64-linux.nix-store
       - uses: actions/upload-artifact@v4
         with:
-          name: aiohttp-nix-store
+          name: odoo-nix-store
           path: |
-            aiohttp-aarch64-linux.nix-store
+            odoo*.nix-store
